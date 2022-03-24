@@ -6,7 +6,7 @@ import { GameSolo } from "./GameSolo";
 type GameProps = {};
 
 export function Game({}: GameProps): JSX.Element | null {
-  const gameMode = useStore((state) => state.settings.mode);
+  const gameMode = useStore((state) => state.mode);
 
   if (gameMode === "practice") {
     return <GamePractice />;

@@ -3,8 +3,6 @@ import { useStore } from "../store";
 import { Plus, Minus } from "phosphor-react";
 import { Fragment } from "react";
 
-type SettingsProps = {};
-
 const explications = {
   solo: (
     <Fragment>
@@ -33,8 +31,9 @@ const explications = {
 
 const titleStyle = `uppercase font-semibold tracking-wider text-slate-900 ml-1 text-sm`;
 
-export function Settings({}: SettingsProps): JSX.Element | null {
-  const settings = useStore((state) => state.settings);
+export function Settings(): JSX.Element | null {
+  const mode = useStore((state) => state.mode);
+  const settings = useStore((state) => state.settings[state.mode]);
   const setMode = useStore((state) => state.setMode);
   const increaseTime = useStore((state) => state.increaseTime);
   const decreaseTime = useStore((state) => state.decreaseTime);
@@ -51,27 +50,22 @@ export function Settings({}: SettingsProps): JSX.Element | null {
         <h3 className={titleStyle}>Mode de jeu</h3>
         <div className="flex flex-row items-stretch divide-x divide-slate-900 border border-slate-900 rounded-lg overflow-hidden">
           <SelectButton
-            active={settings.mode === "solo"}
+            active={mode === "solo"}
             onClick={() => setMode("solo")}
           >
             Solo
           </SelectButton>
-          <SelectButton
-            active={settings.mode === "duo"}
-            onClick={() => setMode("duo")}
-          >
+          <SelectButton active={mode === "duo"} onClick={() => setMode("duo")}>
             Duo
           </SelectButton>
           <SelectButton
-            active={settings.mode === "practice"}
+            active={mode === "practice"}
             onClick={() => setMode("practice")}
           >
             Entrainement
           </SelectButton>
         </div>
-        <p className="px-3 text-center text-sm">
-          {explications[settings.mode]}
-        </p>
+        <p className="px-3 text-center text-sm">{explications[mode]}</p>
       </div>
       <div className="rounded-xl bg-sky-200 p-3 space-y-3">
         <h3 className={titleStyle}>Rounds</h3>
@@ -91,7 +85,7 @@ export function Settings({}: SettingsProps): JSX.Element | null {
       </div>
       <button
         onClick={startGame}
-        className="rounded-xl border border-blue-900 hover:bg-blue-900 hover:text-white p-3 text-lg font-semibold tracking-wider"
+        className="rounded-xl border border-blue-900 hover:bg-blue-900 text-blue-900 hover:text-white p-3 text-lg font-semibold tracking-wider"
       >
         Démarrer !
       </button>

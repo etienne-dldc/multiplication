@@ -16,42 +16,13 @@ export type Game = {
 };
 
 export type GameSettings = {
-  mode: GameMode;
   rounds: number;
   times: number; // in ms
 };
 
-const TIMES = [
-  1000, 1500, 2000, 2500, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000,
-  11000, 12000, 13000, 14000, 15000, 16000, 17000, 18000, 19000, 20000,
-];
-
-const ROUND = [5, 10, 15, 20, 30, 40, 50, 60, 70, 80, 90, 100];
-
-function arrayNext<T>(arr: Array<T>, current: T): T {
-  const index = arr.indexOf(current);
-  if (index === -1) {
-    return arr[0];
-  }
-  if (index === arr.length - 1) {
-    return current;
-  }
-  return arr[index + 1];
-}
-
-function arrayPrev<T>(arr: Array<T>, current: T): T {
-  const index = arr.indexOf(current);
-  if (index === -1) {
-    return arr[0];
-  }
-  if (index === 0) {
-    return current;
-  }
-  return arr[index - 1];
-}
-
 export type State = {
-  settings: GameSettings;
+  mode: GameMode;
+  settings: Record<GameMode, GameSettings>;
   games: Array<Game>;
   playing: boolean;
   // actions
@@ -63,41 +34,62 @@ export type State = {
   startGame: () => void;
 };
 
+const TIMES = [
+  1000, 1500, 2000, 2500, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000,
+  11000, 12000, 13000, 14000, 15000, 16000, 17000, 18000, 19000, 20000,
+];
+
+const ROUND = [5, 10, 15, 20, 30, 40, 50, 60, 70, 80, 90, 100];
+
 export const useStore = create<State>(
   persist(
-    withImmer((set, get) => ({
+    withImmer((set) => ({
+      mode: "solo",
       settings: {
-        mode: "duo",
-        rounds: 20,
-        times: 10000,
+        solo: { rounds: 20, times: 10000 },
+        duo: { rounds: 20, times: 10000 },
+        practice: { rounds: 20, times: 10000 },
       },
       games: [],
       playing: false,
       setMode: (mode: GameMode) =>
         set((state) => {
-          state.settings.mode = mode;
+          state.mode = mode;
         }),
       increaseTime: () =>
         set((state) => {
-          state.settings.times = arrayNext(TIMES, state.settings.times);
+          state.settings[state.mode].times = arrayNext(
+            TIMES,
+            state.settings[state.mode].times
+          );
         }),
       decreaseTime: () =>
         set((state) => {
-          state.settings.times = arrayPrev(TIMES, state.settings.times);
+          state.settings[state.mode].times = arrayPrev(
+            TIMES,
+            state.settings[state.mode].times
+          );
         }),
       increaseRounds: () =>
         set((state) => {
-          state.settings.rounds = arrayNext(ROUND, state.settings.rounds);
+          state.settings[state.mode].rounds = arrayNext(
+            ROUND,
+            state.settings[state.mode].rounds
+          );
         }),
       decreaseRounds: () =>
         set((state) => {
-          state.settings.rounds = arrayPrev(ROUND, state.settings.rounds);
+          state.settings[state.mode].rounds = arrayPrev(
+            ROUND,
+            state.settings[state.mode].rounds
+          );
         }),
       startGame: () =>
         set((state) => {
           state.playing = true;
         }),
     })),
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     { name: "MULTIPLICATIONS_V1", partialize: ({ playing, ...state }) => state }
   )
 );
@@ -127,4 +119,26 @@ function withImmer<
       get,
       api
     );
+}
+
+function arrayNext<T>(arr: Array<T>, current: T): T {
+  const index = arr.indexOf(current);
+  if (index === -1) {
+    return arr[0];
+  }
+  if (index === arr.length - 1) {
+    return current;
+  }
+  return arr[index + 1];
+}
+
+function arrayPrev<T>(arr: Array<T>, current: T): T {
+  const index = arr.indexOf(current);
+  if (index === -1) {
+    return arr[0];
+  }
+  if (index === 0) {
+    return current;
+  }
+  return arr[index - 1];
 }
