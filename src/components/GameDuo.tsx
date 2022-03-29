@@ -1,3 +1,5 @@
+import { ArrowLeft } from "phosphor-react";
+
 type GameDuoProps = {};
 
 import clsx from "clsx";
@@ -78,7 +80,9 @@ function reducer(state: State, action: Action): State {
 }
 
 export function GameDuo({}: GameDuoProps): JSX.Element | null {
-  const settings = useStore((state) => state.settings.solo);
+  const settings = useStore((state) => state.settings.duo);
+  const stopGame = useStore((state) => state.stopGame);
+  const endGame = useStore((state) => state.endGame);
   const [state, dispatch] = useReducer(reducer, {
     rounds: settings.rounds,
     timer: settings.times,
@@ -86,9 +90,16 @@ export function GameDuo({}: GameDuoProps): JSX.Element | null {
     question: null,
   });
 
-  const isDone = state.rounds === 0;
+  const isDone = state.rounds === 1;
 
-  const anim = useTimeRange(state.question?.timer ?? null);
+  const timer =
+    state.question === null
+      ? null
+      : state.question.correct === null
+      ? state.question.timer
+      : null;
+
+  const anim = useTimeRange(timer);
 
   useEffect(() => {
     if (state.question && state.question.correct === null) {
@@ -98,6 +109,16 @@ export function GameDuo({}: GameDuoProps): JSX.Element | null {
     }
   }, [anim, state.question]);
 
+  const a = state.question?.a ?? "a";
+  const b = state.question?.b ?? "b";
+  const result = state.question ? state.question.a * state.question.b : "??";
+
+  const correct = state.question?.correct ?? null;
+
+  const doneRounds =
+    settings.rounds - state.rounds + (correct === null ? 0 : 1);
+  const score = state.score + (correct === true ? 1 : 0);
+
   const onTimerClick = useCallback(() => {
     if (anim?.animating === true) {
       return;
@@ -106,61 +127,73 @@ export function GameDuo({}: GameDuoProps): JSX.Element | null {
       return dispatch({ type: "start" });
     }
     if (isDone) {
-      console.log("TODO");
+      endGame(score);
       return;
     }
     dispatch({ type: "next" });
-  }, [anim?.animating, isDone, state.question]);
-
-  const a = state.question?.a ?? "a";
-  const b = state.question?.b ?? "b";
-  const result = state.question ? state.question.a * state.question.b : "??";
+  }, [anim?.animating, endGame, isDone, score, state.question]);
 
   return (
     <div className="rounded-2xl shadow-md bg-white flex flex-col items-stretch p-3 space-y-3 h-full">
+      <button
+        onClick={stopGame}
+        className="flex flex-row space-x-3 py-2 px-4 items-center rounded-xl bg-slate-900 text-white self-start hover:bg-slate-800"
+      >
+        <ArrowLeft className="w-5 h-5" />
+        <span>Retour</span>
+      </button>
       <div className="rounded-xl bg-sky-200 p-3 space-y-3">
         <h3 className="uppercase font-semibold tracking-wider text-slate-900 ml-1 text-sm">
           Score
         </h3>
-        <p className="border border-slate-400 rounded-lg overflow-hidden text-center text-slate-900 text-lg p-2 font-semibold">
-          {state.score} / {settings.rounds - state.rounds}
+        <p className="text-center text-slate-900 text-3xl p-2 font-semibold flex items-center flex-row justify-evenly">
+          <span>
+            {doneRounds === 0 ? "-" : score} / {doneRounds}
+          </span>
+          <span>
+            {doneRounds === 0 ? "-" : Math.round((score / doneRounds) * 100)}%
+          </span>
         </p>
-        <p className="text-center text-sm">Il reste {state.rounds} questions</p>
       </div>
-      <div className="flex-1 flex flex-col items-stretch justify-around">
-        <div />
-        <p
-          className={clsx(
-            "text-center text-4xl font-mono my-10",
-            state.question ? "text-slate-900" : "text-slate-400"
-          )}
-        >
-          {a} {"\u00D7"} {b} = {result}
-        </p>
-        <div className="flex flex-col items-center justify-center">
-          <Timer
-            className="cursor-pointer"
-            size={250}
-            strokeWidth={20}
-            color="#6366f1"
-            bgColor="#dbeafe"
-            timer={state.question?.timer ?? null}
-            disabledContent={<p>Go !</p>}
-            startContent={<p>Prêt ?</p>}
-            endContent={<p>{isDone ? "Fin" : "Suivant"}</p>}
-            onClick={onTimerClick}
-          />
+      <div className="flex-1 flex flex-col items-stretch justify-center">
+        <div className="flex-1 flex flex-col items-stretch justify-around max-h-[500px]">
+          <p className="text-center text-2xl font-mono">
+            {state.rounds === 1
+              ? `Dernière question !`
+              : `Il reste ${state.rounds} questions`}
+          </p>
+          <p
+            className={clsx(
+              "text-center text-4xl font-mono",
+              state.question ? "text-slate-900" : "text-slate-400"
+            )}
+          >
+            {a} {"\u00D7"} {b} = {result}
+          </p>
+          <div className="flex flex-col items-center justify-center">
+            <Timer
+              className="cursor-pointer"
+              size={250}
+              strokeWidth={20}
+              color="#6366f1"
+              bgColor="#dbeafe"
+              timer={timer}
+              disabledContent={
+                <p>{isDone ? "Fin" : state.question ? "Suivant" : "Go !"}</p>
+              }
+              startContent={<p>Prêt ?</p>}
+              endContent={<p>{isDone ? "Fin" : "Suivant"}</p>}
+              onClick={onTimerClick}
+            />
+          </div>
         </div>
-        <div />
       </div>
       <div className="flex flex-col p-6 space-y-6">
         <button
           onClick={() => dispatch({ type: "correct" })}
           className={clsx(
             "rounded-xl border border-green-600 hover:bg-green-600 hover:text-white p-5 text-xl font-semibold tracking-wider",
-            state.question?.correct === true
-              ? "bg-green-600 text-white"
-              : "text-green-900"
+            correct === true ? "bg-green-600 text-white" : "text-green-900"
           )}
         >
           Bonne Réponse
@@ -169,9 +202,7 @@ export function GameDuo({}: GameDuoProps): JSX.Element | null {
           onClick={() => dispatch({ type: "incorrect" })}
           className={clsx(
             "rounded-xl border border-red-600 hover:bg-red-600 hover:text-white p-5 text-xl font-semibold tracking-wider",
-            state.question?.correct === false
-              ? "bg-red-600 text-white"
-              : "text-red-900"
+            correct === false ? "bg-red-600 text-white" : "text-red-900"
           )}
         >
           Mauvaise réponse

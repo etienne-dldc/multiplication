@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { useStore } from "../store";
+import { formatTime, GAME_MODE_NAME, useStore } from "../store";
 import { Plus, Minus } from "phosphor-react";
 import { Fragment } from "react";
 
@@ -13,7 +13,7 @@ const explications = {
   ),
   duo: (
     <Fragment>
-      Utiliser l'application pour intéroger un autre joueur.
+      Utiliser l'application pour interroger un autre joueur.
       <br />
       La réponse s'affiche en même temps que la question.
       <br />
@@ -32,7 +32,7 @@ const explications = {
 const titleStyle = `uppercase font-semibold tracking-wider text-slate-900 ml-1 text-sm`;
 
 export function Settings(): JSX.Element | null {
-  const mode = useStore((state) => state.mode);
+  const currentMode = useStore((state) => state.mode);
   const settings = useStore((state) => state.settings[state.mode]);
   const setMode = useStore((state) => state.setMode);
   const increaseTime = useStore((state) => state.increaseTime);
@@ -49,23 +49,17 @@ export function Settings(): JSX.Element | null {
       <div className="rounded-xl bg-cyan-200 p-3 space-y-3">
         <h3 className={titleStyle}>Mode de jeu</h3>
         <div className="flex flex-row items-stretch divide-x divide-slate-900 border border-slate-900 rounded-lg overflow-hidden">
-          <SelectButton
-            active={mode === "solo"}
-            onClick={() => setMode("solo")}
-          >
-            Solo
-          </SelectButton>
-          <SelectButton active={mode === "duo"} onClick={() => setMode("duo")}>
-            Duo
-          </SelectButton>
-          <SelectButton
-            active={mode === "practice"}
-            onClick={() => setMode("practice")}
-          >
-            Entrainement
-          </SelectButton>
+          {(["solo", "duo", "practice"] as const).map((mode) => (
+            <SelectButton
+              key={mode}
+              active={currentMode === mode}
+              onClick={() => setMode(mode)}
+            >
+              {GAME_MODE_NAME[mode]}
+            </SelectButton>
+          ))}
         </div>
-        <p className="px-3 text-center text-sm">{explications[mode]}</p>
+        <p className="px-3 text-center text-sm">{explications[currentMode]}</p>
       </div>
       <div className="rounded-xl bg-sky-200 p-3 space-y-3">
         <h3 className={titleStyle}>Rounds</h3>
@@ -120,10 +114,6 @@ export function SelectButton({
       {children}
     </button>
   );
-}
-
-function formatTime(time: number): string {
-  return (time / 1000).toFixed(1) + (time >= 2000 ? " secondes" : " seconde");
 }
 
 type CounterProps = {

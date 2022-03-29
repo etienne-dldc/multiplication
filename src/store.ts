@@ -1,6 +1,7 @@
 import create, { GetState, SetState, StateCreator, StoreApi } from "zustand";
 import { persist } from "zustand/middleware";
 import produce, { Draft } from "immer";
+import { nanoid } from "nanoid";
 
 // solo: need to enter the response
 // duo: show the answer from the start with right / wrong buttons
@@ -32,23 +33,31 @@ export type State = {
   increaseRounds: () => void;
   decreaseRounds: () => void;
   startGame: () => void;
+  stopGame: () => void;
+  endGame: (score: number) => void;
 };
 
 const TIMES = [
-  1000, 1500, 2000, 2500, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000,
+  1000, 1500, 2000, 2500, 3000, 3500, 4000, 5000, 6000, 7000, 8000, 9000, 10000,
   11000, 12000, 13000, 14000, 15000, 16000, 17000, 18000, 19000, 20000,
 ];
 
 const ROUND = [5, 10, 15, 20, 30, 40, 50, 60, 70, 80, 90, 100];
+
+export const GAME_MODE_NAME = {
+  solo: "Solo",
+  duo: "Duo",
+  practice: "Entrainement",
+} as const;
 
 export const useStore = create<State>(
   persist(
     withImmer((set) => ({
       mode: "solo",
       settings: {
-        solo: { rounds: 20, times: 10000 },
-        duo: { rounds: 20, times: 10000 },
-        practice: { rounds: 20, times: 10000 },
+        solo: { rounds: 20, times: 5000 },
+        duo: { rounds: 20, times: 5000 },
+        practice: { rounds: 20, times: 5000 },
       },
       games: [],
       playing: false,
@@ -87,6 +96,21 @@ export const useStore = create<State>(
       startGame: () =>
         set((state) => {
           state.playing = true;
+        }),
+      stopGame: () =>
+        set((state) => {
+          state.playing = false;
+        }),
+      endGame: (score) =>
+        set((state) => {
+          state.games.push({
+            id: nanoid(10),
+            mode: state.mode,
+            score: score,
+            rounds: state.settings[state.mode].rounds,
+            time: state.settings[state.mode].times,
+          });
+          state.playing = false;
         }),
     })),
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -141,4 +165,8 @@ function arrayPrev<T>(arr: Array<T>, current: T): T {
     return current;
   }
   return arr[index - 1];
+}
+
+export function formatTime(time: number): string {
+  return (time / 1000).toFixed(1) + (time >= 2000 ? " secondes" : " seconde");
 }
