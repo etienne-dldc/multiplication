@@ -4,13 +4,13 @@ export function GamesHistory(): JSX.Element | null {
   const games = useStore((state) => state.games);
 
   return (
-    <div className="rounded-2xl shadow-md bg-white flex-1 space-y-3 p-3">
+    <div className="rounded-2xl shadow-md bg-white flex-1 flex flex-col space-y-3 p-3 h-px">
       <h2 className="text-lg text-slate-900 font-semibold tracking-wider mx-2 text-center">
         Parties précédentes
       </h2>
       {games.length === 0 ? (
-        <div className="h-full flex flex-col items-stretch justify-center">
-          <p className="text-center text-lg font-semibold tracking-wider text-slate-700">
+        <div className="min-h-min flex flex-1 flex-col items-stretch justify-center shrink-0">
+          <p className="text-center text-lg font-semibold tracking-wider text-slate-700 my-4">
             Aucune partie
           </p>
         </div>

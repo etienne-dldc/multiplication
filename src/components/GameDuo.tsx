@@ -136,7 +136,13 @@ export function GameDuo({}: GameDuoProps): JSX.Element | null {
   return (
     <div className="rounded-2xl shadow-md bg-white flex flex-col items-stretch p-3 space-y-3 h-full">
       <button
-        onClick={stopGame}
+        onClick={() => {
+          if (isDone) {
+            endGame(score);
+            return;
+          }
+          stopGame();
+        }}
         className="flex flex-row space-x-3 py-2 px-4 items-center rounded-xl bg-slate-900 text-white self-start hover:bg-slate-800"
       >
         <ArrowLeft className="w-5 h-5" />

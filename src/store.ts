@@ -35,6 +35,7 @@ export type State = {
   startGame: () => void;
   stopGame: () => void;
   endGame: (score: number) => void;
+  clear: () => void;
 };
 
 const TIMES = [
@@ -50,15 +51,17 @@ export const GAME_MODE_NAME = {
   practice: "Entrainement",
 } as const;
 
+const initialSettings: Record<GameMode, GameSettings> = {
+  solo: { rounds: 20, times: 5000 },
+  duo: { rounds: 20, times: 5000 },
+  practice: { rounds: 20, times: 5000 },
+};
+
 export const useStore = create<State>(
   persist(
     withImmer((set) => ({
       mode: "solo",
-      settings: {
-        solo: { rounds: 20, times: 5000 },
-        duo: { rounds: 20, times: 5000 },
-        practice: { rounds: 20, times: 5000 },
-      },
+      settings: initialSettings,
       games: [],
       playing: false,
       setMode: (mode: GameMode) =>
@@ -110,6 +113,13 @@ export const useStore = create<State>(
             rounds: state.settings[state.mode].rounds,
             time: state.settings[state.mode].times,
           });
+          state.playing = false;
+        }),
+      clear: () =>
+        set((state) => {
+          state.mode = "duo";
+          state.settings = initialSettings;
+          state.games = [];
           state.playing = false;
         }),
     })),
