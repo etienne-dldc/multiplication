@@ -5,7 +5,7 @@ type GameDuoProps = {};
 import clsx from "clsx";
 import { useCallback, useEffect, useReducer } from "react";
 import { TimeRange, useTimeRange } from "../hooks/useTimeRange";
-import { useStore } from "../store";
+import { GameDifficulty, GAME_DIFFICULTY_TABLES, useStore } from "../store";
 import { Timer } from "./Timer";
 
 type Question = {
@@ -18,6 +18,7 @@ type Question = {
 type State = {
   rounds: number;
   timer: number;
+  difficulty: GameDifficulty;
   score: number;
   question: null | Question;
 };
@@ -35,7 +36,7 @@ function reducer(state: State, action: Action): State {
     }
     return {
       ...state,
-      question: getQuestion(state.timer),
+      question: getQuestion(state.timer, state.difficulty, null),
     };
   }
   if (action.type === "incorrect") {
@@ -73,7 +74,7 @@ function reducer(state: State, action: Action): State {
       ...state,
       score: state.question.correct === true ? state.score + 1 : state.score,
       rounds: state.rounds - 1,
-      question: getQuestion(state.timer),
+      question: getQuestion(state.timer, state.difficulty, state.question),
     };
   }
   return state;
@@ -86,6 +87,7 @@ export function GameDuo({}: GameDuoProps): JSX.Element | null {
   const [state, dispatch] = useReducer(reducer, {
     rounds: settings.rounds,
     timer: settings.times,
+    difficulty: settings.difficulty,
     score: 0,
     question: null,
   });
@@ -218,9 +220,17 @@ export function GameDuo({}: GameDuoProps): JSX.Element | null {
   );
 }
 
-function getQuestion(duration: number): Question {
-  const a = 1 + Math.floor(Math.random() * 10);
-  const b = 1 + Math.floor(Math.random() * 10);
+function getQuestion(
+  duration: number,
+  difficulty: GameDifficulty,
+  prevQuestion: null | Question
+): Question {
+  const aNums = GAME_DIFFICULTY_TABLES[difficulty].filter(
+    (v) => v !== prevQuestion?.a
+  );
+  const bNums = GAME_DIFFICULTY_TABLES[difficulty];
+  const a = aNums[Math.floor(Math.random() * aNums.length)];
+  const b = bNums[Math.floor(Math.random() * bNums.length)];
   const now = Date.now();
   const offset = 500;
   return {

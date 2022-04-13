@@ -8,6 +8,8 @@ import { nanoid } from "nanoid";
 // practice: show the answer after timer not counting points
 export type GameMode = "solo" | "duo" | "practice";
 
+export type GameDifficulty = "easy" | "normal" | "hard";
+
 export type Game = {
   id: string;
   mode: GameMode;
@@ -19,6 +21,7 @@ export type Game = {
 export type GameSettings = {
   rounds: number;
   times: number; // in ms
+  difficulty: GameDifficulty;
 };
 
 export type State = {
@@ -28,6 +31,7 @@ export type State = {
   playing: boolean;
   // actions
   setMode: (mode: GameMode) => void;
+  setDifficulty: (difficulty: GameDifficulty) => void;
   increaseTime: () => void;
   decreaseTime: () => void;
   increaseRounds: () => void;
@@ -51,10 +55,22 @@ export const GAME_MODE_NAME = {
   practice: "Entrainement",
 } as const;
 
+export const GAME_DIFFICULTY_NAME = {
+  easy: "Facile",
+  normal: "Normal",
+  hard: "Difficile",
+} as const;
+
+export const GAME_DIFFICULTY_TABLES = {
+  easy: [1, 2, 3, 4, 5, 10],
+  normal: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+  hard: [3, 4, 6, 7, 8, 9],
+};
+
 const initialSettings: Record<GameMode, GameSettings> = {
-  solo: { rounds: 20, times: 5000 },
-  duo: { rounds: 20, times: 5000 },
-  practice: { rounds: 20, times: 5000 },
+  solo: { rounds: 20, times: 5000, difficulty: "easy" },
+  duo: { rounds: 20, times: 5000, difficulty: "easy" },
+  practice: { rounds: 20, times: 5000, difficulty: "easy" },
 };
 
 export const useStore = create<State>(
@@ -67,6 +83,10 @@ export const useStore = create<State>(
       setMode: (mode: GameMode) =>
         set((state) => {
           state.mode = mode;
+        }),
+      setDifficulty: (difficulty: GameDifficulty) =>
+        set((state) => {
+          state.settings[state.mode].difficulty = difficulty;
         }),
       increaseTime: () =>
         set((state) => {
@@ -124,7 +144,7 @@ export const useStore = create<State>(
         }),
     })),
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    { name: "MULTIPLICATIONS_V1", partialize: ({ playing, ...state }) => state }
+    { name: "MULTIPLICATIONS_V2", partialize: ({ playing, ...state }) => state }
   )
 );
 

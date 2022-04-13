@@ -1,5 +1,10 @@
 import clsx from "clsx";
-import { formatTime, GAME_MODE_NAME, useStore } from "../store";
+import {
+  formatTime,
+  GAME_DIFFICULTY_NAME,
+  GAME_MODE_NAME,
+  useStore,
+} from "../store";
 import { Plus, Minus } from "phosphor-react";
 import { Fragment } from "react";
 
@@ -29,12 +34,19 @@ const explications = {
   ),
 };
 
+const difficultyExplain = {
+  easy: "Uniquement les tables de 1, 2, 3, 4 et 5",
+  normal: "Toutes les tables de multiplication de 1 à 10",
+  hard: "Uniquement les tables de 3, 4, 6, 7, 8 et 9",
+};
+
 const titleStyle = `uppercase font-semibold tracking-wider text-slate-900 ml-1 text-sm`;
 
 export function Settings(): JSX.Element | null {
   const currentMode = useStore((state) => state.mode);
   const settings = useStore((state) => state.settings[state.mode]);
   const setMode = useStore((state) => state.setMode);
+  const setDifficulty = useStore((state) => state.setDifficulty);
   const increaseTime = useStore((state) => state.increaseTime);
   const decreaseTime = useStore((state) => state.decreaseTime);
   const increaseRounds = useStore((state) => state.increaseRounds);
@@ -76,6 +88,23 @@ export function Settings(): JSX.Element | null {
           onPlus={increaseTime}
           onMinus={decreaseTime}
         />
+      </div>
+      <div className="rounded-xl bg-cyan-200 p-3 space-y-3">
+        <h3 className={titleStyle}>Difficulté</h3>
+        <div className="flex flex-row items-stretch divide-x divide-slate-900 border border-slate-900 rounded-lg overflow-hidden">
+          {(["easy", "normal", "hard"] as const).map((difficulty) => (
+            <SelectButton
+              key={difficulty}
+              active={settings.difficulty === difficulty}
+              onClick={() => setDifficulty(difficulty)}
+            >
+              {GAME_DIFFICULTY_NAME[difficulty]}
+            </SelectButton>
+          ))}
+        </div>
+        <p className="px-3 text-center text-sm">
+          {difficultyExplain[settings.difficulty]}
+        </p>
       </div>
       <button
         onClick={startGame}
